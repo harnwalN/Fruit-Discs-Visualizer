@@ -8,30 +8,44 @@
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #ffffff;
+            background-color: #121212; /* Default to Dark Mode */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #333333;
+            color: #e0e0e0;
             user-select: none;
+            transition: background-color 0.3s ease;
         }
         
+        /* Light Mode Override Styles */
+        body.light-mode {
+            background-color: #ffffff;
+            color: #333333;
+        }
+
         #control-panel {
             position: absolute;
             top: 0;
             left: 0;
             bottom: 0;
-            background: #f8f9fa;
-            border-right: 2px solid #dcdee0;
+            background: #1e1e1e; /* Default Dark Mode */
+            border-right: 2px solid #333333;
             padding: 24px;
             width: 340px;
             min-width: 280px;
             max-width: 600px;
-            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
             z-index: 10;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
             resize: horizontal;
             overflow: hidden;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        body.light-mode #control-panel {
+            background: #f8f9fa;
+            border-right: 2px solid #dcdee0;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
         }
 
         .scrollable-content {
@@ -46,33 +60,48 @@
             font-size: 1.25rem;
             font-weight: 600;
             letter-spacing: -0.3px;
-            color: #111111;
+            color: #ffffff; /* Default Dark Mode */
+            transition: color 0.3s;
         }
+        body.light-mode h2 { color: #111111; }
 
         p {
             font-size: 0.85rem;
-            color: #666666;
+            color: #aaaaaa; /* Default Dark Mode */
             line-height: 1.5;
             margin-bottom: 12px;
+            transition: color 0.3s;
         }
+        body.light-mode p { color: #666666; }
 
         .nav-instructions {
             font-size: 0.78rem;
-            background: #edf2f7;
-            border-left: 3px solid #4752c4;
+            background: #2d2d2d; /* Default Dark Mode */
+            border-left: 3px solid #5a67d8;
             padding: 8px 10px;
             border-radius: 4px;
             margin-bottom: 15px;
+            color: #e2e8f0;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.light-mode .nav-instructions {
+            background: #edf2f7;
             color: #2d3748;
+            border-left-color: #4752c4;
         }
 
         .view-controls {
-            background: #ffffff;
-            border: 1px solid #e4e6e8;
+            background: #252525; /* Default Dark Mode */
+            border: 1px solid #3d3d3d;
             padding: 14px;
             border-radius: 8px;
             margin-bottom: 10px;
             font-size: 0.85rem;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        body.light-mode .view-controls {
+            background: #ffffff;
+            border-color: #e4e6e8;
         }
 
         .control-group {
@@ -84,17 +113,25 @@
 
         label {
             font-weight: 500;
-            color: #444444;
+            color: #cccccc; /* Default Dark Mode */
+            transition: color 0.3s;
         }
+        body.light-mode label { color: #444444; }
 
         select {
             width: 115px;
-            background: #ffffff;
-            border: 1px solid #c1c4c8;
-            color: #111111;
+            background: #333333; /* Default Dark Mode */
+            border: 1px solid #555555;
+            color: #ffffff;
             padding: 5px;
             border-radius: 4px;
             font-size: 0.85rem;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+        body.light-mode select {
+            background: #ffffff;
+            border-color: #c1c4c8;
+            color: #111111;
         }
 
         table {
@@ -111,13 +148,17 @@
             text-transform: uppercase;
             font-size: 0.7rem;
             letter-spacing: 0.5px;
-            border-bottom: 1px solid #e4e6e8;
+            border-bottom: 1px solid #3d3d3d; /* Default Dark Mode */
+            transition: border-color 0.3s;
         }
+        body.light-mode th { border-bottom-color: #e4e6e8; }
 
         td {
             padding: 6px 0;
-            border-bottom: 1px solid #f1f3f5;
+            border-bottom: 1px solid #252525; /* Default Dark Mode */
+            transition: border-color 0.3s;
         }
+        body.light-mode td { border-bottom-color: #f1f3f5; }
 
         .point-label {
             font-weight: 600;
@@ -126,38 +167,134 @@
 
         input[type="number"] {
             width: 55px;
-            background: #ffffff;
-            border: 1px solid #c1c4c8;
-            color: #111111;
+            background: #333333; /* Default Dark Mode */
+            border: 1px solid #555555;
+            color: #ffffff;
             padding: 5px;
             border-radius: 4px;
             font-family: monospace;
             text-align: center;
             font-size: 0.85rem;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+        body.light-mode input[type="number"] {
+            background: #ffffff;
+            border-color: #c1c4c8;
+            color: #111111;
         }
 
         input[type="number"]:focus {
-            border-color: #4752c4;
+            border-color: #5a67d8; /* Default Dark Mode */
             outline: none;
         }
+        body.light-mode input[type="number"]:focus { border-color: #4752c4; }
 
         input[type="range"] {
             width: 110px;
-            accent-color: #4752c4;
+            accent-color: #5a67d8; /* Default Dark Mode */
         }
+        body.light-mode input[type="range"] { accent-color: #4752c4; }
 
         input[type="checkbox"] {
-            accent-color: #4752c4;
+            accent-color: #5a67d8; /* Default Dark Mode */
             width: 16px;
             height: 16px;
         }
+        body.light-mode input[type="checkbox"] { accent-color: #4752c4; }
+
+        #play-button {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: #5a67d8; /* Default Dark Mode */
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(90, 103, 216, 0.3);
+            transition: all 0.2s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        body.light-mode #play-button { background: #4752c4; box-shadow: 0 4px 15px rgba(71, 82, 196, 0.4); }
+        #play-button:hover { background: #4c51bf; transform: translateY(-2px); }
+        body.light-mode #play-button:hover { background: #3b45ab; }
+
+        #play-button.reset-state {
+            background: #555555;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        body.light-mode #play-button.reset-state {
+            background: #718096;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        #play-button.reset-state:hover { background: #444444; }
+        body.light-mode #play-button.reset-state:hover { background: #4a5568; }
+
+        #play-button svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Mode Toggle Button Style */
+        #mode-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2d2d2d; /* Default Dark Mode */
+            border: 1px solid #444444;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f1f3f5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
+        }
+        #mode-toggle:hover { transform: scale(1.05); }
+        body.light-mode #mode-toggle {
+            background: #f1f3f5;
+            border-color: #dcdee0;
+            color: #333333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        #mode-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        #mode-toggle .moon-icon { display: none; } /* Default is dark, show sun icon */
+        #mode-toggle .sun-icon { display: block; }
+        body.light-mode #mode-toggle .moon-icon { display: block; }
+        body.light-mode #mode-toggle .sun-icon { display: none; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 10px; }
+        body.light-mode ::-webkit-scrollbar-thumb { background: #ced4da; }
     </style>
 </head>
 <body>
+
+    <button id="mode-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <svg class="moon-icon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <svg class="sun-icon" viewBox="0 0 24 24">
+            <path d="M12 7c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3zm0-10c.6 0 1-.4 1-1V3c0-.6-.4-1-1-1s-1 .4-1 1v1c0 .6.4 1 1 1zm0 14c-.6 0-1 .4-1 1v1c0 .6.4 1 1 1s1-.4 1-1v-1c0-.6-.4-1-1-1zm8.5-7.5h-1c-.6 0-1 .4-1 1s.4 1 1 1h1c.6 0 1-.4 1-1s-.4-1-1-1zM5 12c0-.6-.4-1-1-1H3c-.6 0-1 .4-1 1s.4 1 1 1h1c.6 0 1-.4 1-1zm12.2-5.8c.4.4 1 .4 1.4 0l.7-.7c.4-.4.4-1 0-1.4s-1-.4-1.4 0l-.7.7c-.4.4-.4 1 0 1.4zm-10.6 10.6c.4.4 1 .4 1.4 0s.4-1 0-1.4l-.7-.7c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l.7.7zm11.3-.7c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l.7.7c.4.4 1 .4 1.4 0s.4-1 0-1.4l-.7-.7zm-10.6-12c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l.7.7c.4.4 1 .4 1.4 0s.4-1 0-1.4l-.7-.7z"/>
+        </svg>
+    </button>
 
     <div id="control-panel">
         <h2>Fruit Visualizer</h2>
@@ -171,13 +308,18 @@
         
         <div class="view-controls">
             <div class="control-group">
-                <label for="preset-select" style="font-weight: 600; color: #4752c4;">Target Profile</label>
+                <label style="font-weight: 600; color: #5a67d8;" id="target-label">Target Profile</label>
                 <select id="preset-select" onchange="loadTargetPreset()">
                     <option value="orange" selected>Orange</option>
                     <option value="kiwi">Kiwi</option>
                     <option value="potato">Potato</option>
                     <option value="carrot">Carrot</option>
                     <option value="apple">Apple</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="points-count-select">Number of Points</label>
+                <select id="points-count-select" onchange="handlePointsCountChange()">
                 </select>
             </div>
             <div class="control-group">
@@ -200,10 +342,15 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
+
+    <button id="play-button" onclick="handleActionButtonClick()">
+        <svg id="button-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="button-text">Play Animation</span>
+    </button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -211,6 +358,11 @@
     <script>
         const scaleFactor = 4;
         
+        let isAnimatingVolume = false;
+        let animationProgress = 0.0;
+        let hasAnimated = false; 
+        const animationSpeed = 0.008; 
+
         const presets = {
             orange: {
                 data: [{x:9,r:0},{x:9,r:1.65},{x:8,r:3.35},{x:7,r:4.1},{x:6,r:4.55},{x:5,r:4.75},{x:4,r:4.8},{x:3,r:4.6},{x:2,r:4.05},{x:1,r:2.85},{x:0,r:0}],
@@ -223,7 +375,7 @@
                         mCtx.fillStyle = Math.random() > 0.5 ? '#ff851c' : '#e06200'; mCtx.globalAlpha = 0.18;
                         mCtx.beginPath(); mCtx.arc(x,y,radius*4,0,Math.PI*2); mCtx.fill();
                         bCtx.fillStyle = Math.random() > 0.45 ? '#ffffff' : '#1a1a1a'; bCtx.globalAlpha = 0.22;
-                        bCtx.beginPath(); bCtx.arc(x,y,radius,0,Math.PI*2); bCtx.fill();
+                        bCtx.beginPath(); bCtx.arc(x,y,radius,0,Math.PI*2); mCtx.fill();
                     }
                 }
             },
@@ -258,7 +410,7 @@
                         mCtx.fillStyle = '#594121'; mCtx.globalAlpha = 0.7;
                         mCtx.beginPath(); mCtx.arc(x,y,4,0,Math.PI*2); mCtx.fill();
                         bCtx.fillStyle = '#000000'; bCtx.globalAlpha = 0.6;
-                        bCtx.beginPath(); bCtx.arc(x,y,5,0,Math.PI*2); mCtx.fill();
+                        bCtx.beginPath(); mCtx.arc(x,y,5,0,Math.PI*2); mCtx.fill();
                     }
                 }
             },
@@ -297,11 +449,15 @@
             }
         };
 
+        let activePresetPointsData = []; 
         let runtimePoints = [];
         let visualMarkers = [];
         let circumferenceRings = [];
         
-        const desmosColors = [0xc74440, 0x2d70b3, 0x388c46, 0x6042a6, 0x000000];
+        const desmosColors = [
+            0xc74440, 0x2d70b3, 0x388c46, 0x6042a6, 0xfa7e19, 0x00a3a3,
+            0xb8255f, 0x3d85c6, 0x274e13, 0x674ea7, 0xa64d79, 0xe69138,
+        ];
         const markerGeo = new THREE.SphereGeometry(0.025, 16, 16);
 
         const mapCanvas = document.createElement('canvas');
@@ -317,6 +473,14 @@
         textureColor.repeat.set(4, 3); textureBump.repeat.set(4, 3);
 
         function loadTargetPreset() {
+            isAnimatingVolume = false;
+            hasAnimated = false;
+
+            const playBtn = document.getElementById('play-button');
+            playBtn.classList.remove('reset-state');
+            document.getElementById('button-text').innerText = "Play Animation";
+            document.getElementById('button-icon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+
             const currentPresetKey = document.getElementById('preset-select').value;
             const target = presets[currentPresetKey];
 
@@ -331,6 +495,36 @@
             stemMat.color.setHex(target.stemColor);
             stemGroup.visible = target.stemVisible;
 
+            activePresetPointsData = target.data.map(d => ({ x: d.x, r: d.r }));
+
+            const countSelect = document.getElementById('points-count-select');
+            countSelect.innerHTML = '';
+            for (let k = 3; k <= activePresetPointsData.length; k++) {
+                const opt = document.createElement('option');
+                opt.value = k;
+                opt.innerText = k;
+                if (k === activePresetPointsData.length) opt.selected = true;
+                countSelect.appendChild(opt);
+            }
+
+            buildControlTableAndMeshes(activePresetPointsData.length);
+        }
+
+        function handlePointsCountChange() {
+            const targetSize = parseInt(document.getElementById('points-count-select').value);
+            buildControlTableAndMeshes(targetSize);
+        }
+
+        function buildControlTableAndMeshes(numPointsToUse) {
+            if (activePresetPointsData.length > numPointsToUse) {
+                activePresetPointsData = activePresetPointsData.slice(0, numPointsToUse);
+            } else if (activePresetPointsData.length < numPointsToUse) {
+                const lastElement = activePresetPointsData[activePresetPointsData.length - 1] || { x: 0, r: 0 };
+                while (activePresetPointsData.length < numPointsToUse) {
+                    activePresetPointsData.push({ x: lastElement.x, r: lastElement.r });
+                }
+            }
+
             runtimePoints = [];
             
             while(overlayGroup.children.length > 0){
@@ -343,7 +537,7 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = ''; 
 
-            target.data.forEach((data, i) => {
+            activePresetPointsData.forEach((data, i) => {
                 runtimePoints.push({ x: data.x / scaleFactor, r: data.r / scaleFactor });
 
                 const colorHex = desmosColors[i % desmosColors.length];
@@ -361,19 +555,21 @@
                 overlayGroup.add(markerMesh);
                 visualMarkers.push(markerMesh);
 
-                const ringGeo = new THREE.RingGeometry(0.985, 1.015, 64);
-                const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-                ringMesh.rotation.y = Math.PI / 2; 
+                const ringMat = new THREE.MeshBasicMaterial({ 
+                    color: colorHex, 
+                    side: THREE.DoubleSide
+                });
+                const ringMesh = new THREE.Mesh(new THREE.BufferGeometry(), ringMat);
                 overlayGroup.add(ringMesh);
                 circumferenceRings.push(ringMesh);
             });
 
-            updateGeometry();
+            updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : Math.PI * 2); 
+            updateVisualization();
         }
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xffffff);
+        scene.background = new THREE.Color(0x121212); 
 
         const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(1.5, 1.5, 4.0);
@@ -389,22 +585,21 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        
-        // REBOUND NAVIGATION: Left click now cleanly handles the full Orbit camera rotations. 
         controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: null };
 
-        const measurementGrid = new THREE.GridHelper(8, 32, 0xb0b3b8, 0xe4e6e8);
+        // Original colors preserved for dark mode setup
+        let measurementGrid = new THREE.GridHelper(8, 32, 0x444444, 0x222222);
         measurementGrid.position.y = -1.2;
         scene.add(measurementGrid);
 
         const axisPoints = [new THREE.Vector3(-3, 0, 0), new THREE.Vector3(3, 0, 0)];
         const axisGeo = new THREE.BufferGeometry().setFromPoints(axisPoints);
-        const axisMat = new THREE.LineDashedMaterial({ color: 0x4752c4, dashSize: 0.08, gapSize: 0.05 });
+        const axisMat = new THREE.LineDashedMaterial({ color: 0x5a67d8, dashSize: 0.08, gapSize: 0.05 }); 
         const axisLine = new THREE.Line(axisGeo, axisMat);
         axisLine.computeLineDistances();
         scene.add(axisLine);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
         const keyLight = new THREE.DirectionalLight(0xffffff, 1.4); 
@@ -419,7 +614,7 @@
             map: textureColor, bumpMap: textureBump,
             metalness: 0.0, reflectivity: 0.6,
             transparent: true, opacity: 0.4, side: THREE.DoubleSide,
-            depthWrite: false
+            depthWrite: false 
         });
 
         let fruitGeometry = new THREE.BufferGeometry();
@@ -442,27 +637,47 @@
         function updateDataFields(index) {
             const xVal = parseFloat(document.getElementById(`x-${index}`).value) || 0;
             const rVal = parseFloat(document.getElementById(`r-${index}`).value) || 0;
+            
+            activePresetPointsData[index].x = xVal;
+            activePresetPointsData[index].r = rVal;
+
             runtimePoints[index].x = xVal / scaleFactor;
             runtimePoints[index].r = rVal / scaleFactor;
-            updateGeometry();
+            updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : Math.PI * 2);
         }
 
-        function updateGeometry() {
+        function updateGeometry(phiLength = Math.PI * 2) {
             const lathePoints = [];
             const count = runtimePoints.length;
+            if (count === 0) return;
+
+            const showGrid = document.getElementById('grid-toggle').checked;
+            const discThickness = 0.035; 
+            const borderRingThickness = 0.02; 
 
             for (let i = 0; i < count; i++) {
                 const radiusR = runtimePoints[i].r;
                 const positionX = runtimePoints[i].x;
                 
                 lathePoints.push(new THREE.Vector2(radiusR, positionX));
-                visualMarkers[i].position.set(positionX, radiusR, 0);
+                if (visualMarkers[i]) visualMarkers[i].position.set(positionX, radiusR, 0);
 
-                if (radiusR > 0.001) {
-                    circumferenceRings[i].visible = true;
-                    circumferenceRings[i].position.set(positionX, 0, 0); 
-                    circumferenceRings[i].scale.set(radiusR, radiusR, 1); 
-                } else {
+                if (radiusR > 0.001 && phiLength > 0.001 && hasAnimated && circumferenceRings[i]) {
+                    circumferenceRings[i].geometry.dispose();
+
+                    const hollowDiscProfile = [
+                        new THREE.Vector2(radiusR - borderRingThickness, positionX - discThickness / 2),
+                        new THREE.Vector2(radiusR + 0.004,               positionX - discThickness / 2), 
+                        new THREE.Vector2(radiusR + 0.004,               positionX + discThickness / 2),
+                        new THREE.Vector2(radiusR - borderRingThickness, positionX + discThickness / 2)
+                    ];
+                    
+                    const ringGeo = new THREE.LatheGeometry(hollowDiscProfile, 64, 0, phiLength);
+                    ringGeo.rotateZ(-Math.PI / 2);
+                    
+                    circumferenceRings[i].geometry = ringGeo;
+                    circumferenceRings[i].visible = showGrid;
+                } else if (circumferenceRings[i]) {
                     circumferenceRings[i].visible = false;
                 }
             }
@@ -477,18 +692,18 @@
                 smoothProfilePoints[smoothProfilePoints.length - 2].y = smoothProfilePoints[smoothProfilePoints.length - 1].y;
             }
 
-            const temporaryGeo = new THREE.LatheGeometry(smoothProfilePoints, 128); 
+            const safePhi = Math.max(0.001, phiLength);
+            const temporaryGeo = new THREE.LatheGeometry(smoothProfilePoints, 128, 0, safePhi); 
             temporaryGeo.rotateZ(-Math.PI / 2); 
             
             fruitMesh.geometry = temporaryGeo;
-            fruitMesh.position.set(0, 0, 0);
-            fruitMesh.rotation.set(0, 0, 0); // No spinning coordinates forced onto the mesh bounds
 
-            stemGroup.position.set(runtimePoints[0].x, 0, 0);
-            stemGroup.rotation.set(0, 0, -Math.PI / 2);
-            
-            const midX = (runtimePoints[0].x + runtimePoints[count - 1].x) / 2;
-            controls.target.set(midX, 0, 0);
+            if(runtimePoints[0]) {
+                stemGroup.position.set(runtimePoints[0].x, 0, 0);
+                stemGroup.rotation.set(0, 0, -Math.PI / 2);
+                const midX = (runtimePoints[0].x + runtimePoints[count - 1].x) / 2;
+                controls.target.set(midX, 0, 0);
+            }
         }
 
         function updateVisualization() {
@@ -497,14 +712,87 @@
             fruitMaterial.opacity = opacityVal;
             measurementGrid.visible = showGrid;
             axisLine.visible = showGrid;
+            
+            circumferenceRings.forEach((ring, i) => {
+                if (runtimePoints[i] && runtimePoints[i].r > 0.001 && hasAnimated && animationProgress > 0.001) {
+                    ring.visible = showGrid;
+                } else if (ring) {
+                    ring.visible = false;
+                }
+            });
+        }
+
+        function handleActionButtonClick() {
+            if (hasAnimated && !isAnimatingVolume) {
+                resetToPreAnimationState();
+            } else if (!isAnimatingVolume) {
+                startRevolutionAnimation();
+            }
+        }
+
+        function startRevolutionAnimation() {
+            animationProgress = 0.001; 
+            isAnimatingVolume = true;
+            hasAnimated = true;
+
+            const playBtn = document.getElementById('play-button');
+            playBtn.classList.add('reset-state');
+            document.getElementById('button-text').innerText = "Reset View";
+            document.getElementById('button-icon').innerHTML = '<path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>';
+        }
+
+        function resetToPreAnimationState() {
+            isAnimatingVolume = false;
+            animationProgress = 0.0;
+            hasAnimated = false;
+
+            const playBtn = document.getElementById('play-button');
+            playBtn.classList.remove('reset-state');
+            document.getElementById('button-text').innerText = "Play Animation";
+            document.getElementById('button-icon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+
+            updateGeometry(Math.PI * 2);
+            updateVisualization();
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('light-mode');
+            
+            const isLight = body.classList.contains('light-mode');
+            scene.background.setHex(isLight ? 0xffffff : 0x121212);
+            
+            scene.remove(measurementGrid);
+            // Modified: Uses sharp dark black (0x111111 / 0xcccccc) when in light mode, original colors in dark mode.
+            measurementGrid = new THREE.GridHelper(
+                8, 
+                32, 
+                isLight ? 0x111111 : 0x444444, 
+                isLight ? 0xcccccc : 0x222222
+            );
+            measurementGrid.position.y = -1.2;
+            measurementGrid.visible = document.getElementById('grid-toggle').checked;
+            scene.add(measurementGrid);
+
+            axisMat.color.setHex(isLight ? 0x111111 : 0x5a67d8);
+            document.getElementById('target-label').style.color = isLight ? '#4752c4' : '#5a67d8';
         }
 
         loadTargetPreset();
-        updateVisualization();
 
         function animate() {
             requestAnimationFrame(animate);
-            // ALL AUTO-SPIN LOGIC REMOVED
+
+            if (isAnimatingVolume) {
+                animationProgress += animationSpeed;
+                if (animationProgress >= 1.0) {
+                    animationProgress = 1.0;
+                    isAnimatingVolume = false; 
+                }
+                const sweepAngle = animationProgress * Math.PI * 2;
+                updateGeometry(sweepAngle);
+            }
+
             controls.update();
             renderer.render(scene, camera);
         }
