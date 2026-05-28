@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruit Visualizer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333333;
+            user-select: none;
+        }
+        
+        #control-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            background: #f8f9fa;
+            border-right: 2px solid #dcdee0;
+            padding: 24px;
+            width: 340px;
+            min-width: 280px;
+            max-width: 600px;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            resize: horizontal;
+            overflow: hidden;
+        }
+
+        .scrollable-content {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 5px;
+            margin-top: 15px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: #111111;
+        }
+
+        p {
+            font-size: 0.85rem;
+            color: #666666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .nav-instructions {
+            font-size: 0.78rem;
+            background: #edf2f7;
+            border-left: 3px solid #4752c4;
+            padding: 8px 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .view-controls {
+            background: #ffffff;
+            border: 1px solid #e4e6e8;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: 500;
+            color: #444444;
+        }
+
+        select {
+            width: 115px;
+            background: #ffffff;
+            border: 1px solid #c1c4c8;
+            color: #111111;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th {
+            text-align: left;
+            padding-bottom: 8px;
+            color: #888888;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e4e6e8;
+        }
+
+        td {
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .point-label {
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        input[type="number"] {
+            width: 55px;
+            background: #ffffff;
+            border: 1px solid #c1c4c8;
+            color: #111111;
+            padding: 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        input[type="number"]:focus {
+            border-color: #4752c4;
+            outline: none;
+        }
+
+        input[type="range"] {
+            width: 110px;
+            accent-color: #4752c4;
+        }
+
+        input[type="checkbox"] {
+            accent-color: #4752c4;
+            width: 16px;
+            height: 16px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="control-panel">
+        <h2>Fruit Visualizer</h2>
+        <p>Revolving $r(x)$ around the $X$-axis via Disk Method:<br> $V = \pi \int_{a}^{b} [r(x)]^2 dx$</p>
+        
+        <div class="nav-instructions">
+            <b>Navigation Controls:</b><br>
+            • <b>Left-Click + Drag:</b> Orbit camera viewpoint<br>
+            • <b>Scroll Wheel:</b> Zoom view in / out
+        </div>
+        
+        <div class="view-controls">
+            <div class="control-group">
+                <label for="preset-select" style="font-weight: 600; color: #4752c4;">Target Profile</label>
+                <select id="preset-select" onchange="loadTargetPreset()">
+                    <option value="orange" selected>Orange</option>
+                    <option value="kiwi">Kiwi</option>
+                    <option value="potato">Potato</option>
+                    <option value="carrot">Carrot</option>
+                    <option value="apple">Apple</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="opacity-slider">Peel Opacity</label>
+                <input type="range" id="opacity-slider" min="0.05" max="1.0" step="0.05" value="0.4" oninput="updateVisualization()">
+            </div>
+            <div class="control-group">
+                <label for="grid-toggle">Coordinate Grid</label>
+                <input type="checkbox" id="grid-toggle" checked onchange="updateVisualization()">
+            </div>
+        </div>
+
+        <div class="scrollable-content">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Expression</th>
+                        <th>Position (X)</th>
+                        <th>Radius r(x)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        const scaleFactor = 4;
+        
+        const presets = {
+            orange: {
+                data: [{x:9,r:0},{x:9,r:1.65},{x:8,r:3.35},{x:7,r:4.1},{x:6,r:4.55},{x:5,r:4.75},{x:4,r:4.8},{x:3,r:4.6},{x:2,r:4.05},{x:1,r:2.85},{x:0,r:0}],
+                roughness: 0.5, clearcoat: 0.4, bumpScale: 0.007, stemColor: 0x3d5229, stemVisible: true,
+                drawTextures: (mCtx, bCtx) => {
+                    mCtx.fillStyle = '#ff7605'; mCtx.fillRect(0,0,512,512);
+                    bCtx.fillStyle = '#808080'; bCtx.fillRect(0,0,512,512);
+                    for(let i=0; i<25000; i++) {
+                        let x = Math.random()*512; let y = Math.random()*512; let radius = Math.random()*1.4+0.4;
+                        mCtx.fillStyle = Math.random() > 0.5 ? '#ff851c' : '#e06200'; mCtx.globalAlpha = 0.18;
+                        mCtx.beginPath(); mCtx.arc(x,y,radius*4,0,Math.PI*2); mCtx.fill();
+                        bCtx.fillStyle = Math.random() > 0.45 ? '#ffffff' : '#1a1a1a'; bCtx.globalAlpha = 0.22;
+                        bCtx.beginPath(); bCtx.arc(x,y,radius,0,Math.PI*2); bCtx.fill();
+                    }
+                }
+            },
+            kiwi: {
+                data: [{x:8.5,r:0},{x:8,r:2.1},{x:7,r:3.1},{x:6,r:3.5},{x:5,r:3.6},{x:4,r:3.6},{x:3,r:3.5},{x:2,r:3.2},{x:1,r:2.3},{x:0.5,r:0}],
+                roughness: 0.9, clearcoat: 0.0, bumpScale: 0.015, stemColor: 0x221a12, stemVisible: false,
+                drawTextures: (mCtx, bCtx) => {
+                    mCtx.fillStyle = '#705133'; mCtx.fillRect(0,0,512,512);
+                    bCtx.fillStyle = '#808080'; bCtx.fillRect(0,0,512,512);
+                    for(let i=0; i<45000; i++) {
+                        let x = Math.random()*512; let y = Math.random()*512;
+                        mCtx.fillStyle = Math.random() > 0.5 ? '#5c4127' : '#82613f'; mCtx.globalAlpha = 0.25;
+                        mCtx.fillRect(x, y, Math.random()*2+1, Math.random()*5+2);
+                        bCtx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000'; bCtx.globalAlpha = 0.35;
+                        bCtx.fillRect(x, y, 1, Math.random()*4+1);
+                    }
+                }
+            },
+            potato: {
+                data: [{x:10,r:0},{x:9,r:1.8},{x:7.5,r:2.7},{x:6,r:3.0},{x:4.5,r:2.9},{x:3,r:2.8},{x:1.5,r:2.2},{x:0,r:0}],
+                roughness: 0.85, clearcoat: 0.0, bumpScale: 0.012, stemColor: 0x1a120b, stemVisible: false,
+                drawTextures: (mCtx, bCtx) => {
+                    mCtx.fillStyle = '#b38f5c'; mCtx.fillRect(0,0,512,512);
+                    bCtx.fillStyle = '#808080'; bCtx.fillRect(0,0,512,512);
+                    for(let i=0; i<300; i++) {
+                        let x = Math.random()*512; let y = Math.random()*512; let r = Math.random()*25+5;
+                        mCtx.fillStyle = '#8a6a3e'; mCtx.globalAlpha = 0.15;
+                        mCtx.beginPath(); mCtx.arc(x,y,r,0,Math.PI*2); mCtx.fill();
+                    }
+                    for(let i=0; i<15; i++) {
+                        let x = Math.random()*512; let y = Math.random()*512;
+                        mCtx.fillStyle = '#594121'; mCtx.globalAlpha = 0.7;
+                        mCtx.beginPath(); mCtx.arc(x,y,4,0,Math.PI*2); mCtx.fill();
+                        bCtx.fillStyle = '#000000'; bCtx.globalAlpha = 0.6;
+                        bCtx.beginPath(); bCtx.arc(x,y,5,0,Math.PI*2); mCtx.fill();
+                    }
+                }
+            },
+            carrot: {
+                data: [{x:11,r:0},{x:10,r:1.2},{x:8.5,r:1.4},{x:7,r:1.5},{x:5,r:1.3},{x:3,r:1.0},{x:1,r:0.6},{x:0,r:0}],
+                roughness: 0.6, clearcoat: 0.15, bumpScale: 0.01, stemColor: 0x517332, stemVisible: true,
+                drawTextures: (mCtx, bCtx) => {
+                    mCtx.fillStyle = '#ff6b00'; mCtx.fillRect(0,0,512,512);
+                    bCtx.fillStyle = '#808080'; bCtx.fillRect(0,0,512,512);
+                    for(let i=0; i<50; i++) {
+                        let y = Math.random()*512;
+                        mCtx.fillStyle = '#d95b00'; mCtx.globalAlpha = 0.4;
+                        mCtx.fillRect(0, y, 512, Math.random()*6+2);
+                        bCtx.fillStyle = '#222222'; bCtx.globalAlpha = 0.3;
+                        bCtx.fillRect(0, y, 512, 3);
+                    }
+                }
+            },
+            apple: {
+                data: [{x:7.5,r:0},{x:7,r:2.4},{x:6,r:3.8},{x:4.5,r:4.1},{x:3,r:4.0},{x:1.5,r:3.4},{x:0.5,r:2.0},{x:0,r:0}],
+                roughness: 0.22, clearcoat: 0.8, bumpScale: 0.003, stemColor: 0x2b1e11, stemVisible: true,
+                drawTextures: (mCtx, bCtx) => {
+                    mCtx.fillStyle = '#cc1818'; mCtx.fillRect(0,0,512,512);
+                    bCtx.fillStyle = '#808080'; bCtx.fillRect(0,0,512,512);
+                    for(let i=0; i<150; i++) {
+                        let x = Math.random()*512;
+                        mCtx.fillStyle = '#e6c822'; mCtx.globalAlpha = 0.2;
+                        mCtx.fillRect(x, 0, Math.random()*25+5, 512);
+                    }
+                    for(let i=0; i<6000; i++) {
+                        let x = Math.random()*512; let y = Math.random()*512;
+                        mCtx.fillStyle = '#ffebb3'; mCtx.globalAlpha = 0.35;
+                        mCtx.fillRect(x, y, 1.5, 1.5);
+                    }
+                }
+            }
+        };
+
+        let runtimePoints = [];
+        let visualMarkers = [];
+        let circumferenceRings = [];
+        
+        const desmosColors = [0xc74440, 0x2d70b3, 0x388c46, 0x6042a6, 0x000000];
+        const markerGeo = new THREE.SphereGeometry(0.025, 16, 16);
+
+        const mapCanvas = document.createElement('canvas');
+        const bumpCanvas = document.createElement('canvas');
+        mapCanvas.width = bumpCanvas.width = 512;
+        mapCanvas.height = bumpCanvas.height = 512;
+        const mCtx = mapCanvas.getContext('2d');
+        const bCtx = bumpCanvas.getContext('2d');
+
+        const textureColor = new THREE.CanvasTexture(mapCanvas);
+        const textureBump = new THREE.CanvasTexture(bumpCanvas);
+        textureColor.wrapS = textureColor.wrapT = textureBump.wrapS = textureBump.wrapT = THREE.RepeatWrapping;
+        textureColor.repeat.set(4, 3); textureBump.repeat.set(4, 3);
+
+        function loadTargetPreset() {
+            const currentPresetKey = document.getElementById('preset-select').value;
+            const target = presets[currentPresetKey];
+
+            mCtx.globalAlpha = 1.0; bCtx.globalAlpha = 1.0;
+            target.drawTextures(mCtx, bCtx);
+            textureColor.needsUpdate = true;
+            textureBump.needsUpdate = true;
+
+            fruitMaterial.roughness = target.roughness;
+            fruitMaterial.clearcoat = target.clearcoat;
+            fruitMaterial.bumpScale = target.bumpScale;
+            stemMat.color.setHex(target.stemColor);
+            stemGroup.visible = target.stemVisible;
+
+            runtimePoints = [];
+            
+            while(overlayGroup.children.length > 0){
+                overlayGroup.children[0].geometry.dispose();
+                overlayGroup.remove(overlayGroup.children[0]);
+            }
+            visualMarkers = [];
+            circumferenceRings = [];
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = ''; 
+
+            target.data.forEach((data, i) => {
+                runtimePoints.push({ x: data.x / scaleFactor, r: data.r / scaleFactor });
+
+                const colorHex = desmosColors[i % desmosColors.length];
+                const tr = document.createElement('tr');
+                
+                tr.innerHTML = `
+                    <td class="point-label" style="color: #${colorHex.toString(16).padStart(6, '0')}">e<sub>${i+1}</sub>(y)</td>
+                    <td><input type="number" id="x-${i}" value="${data.x}" step="0.5" oninput="updateDataFields(${i})"></td>
+                    <td><input type="number" id="r-${i}" value="${data.r}" step="0.05" oninput="updateDataFields(${i})"></td>
+                `;
+                tbody.appendChild(tr);
+
+                const specificMat = new THREE.MeshBasicMaterial({ color: colorHex });
+                const markerMesh = new THREE.Mesh(markerGeo, specificMat);
+                overlayGroup.add(markerMesh);
+                visualMarkers.push(markerMesh);
+
+                const ringGeo = new THREE.RingGeometry(0.985, 1.015, 64);
+                const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.rotation.y = Math.PI / 2; 
+                overlayGroup.add(ringMesh);
+                circumferenceRings.push(ringMesh);
+            });
+
+            updateGeometry();
+        }
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(1.5, 1.5, 4.0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        renderer.outputEncoding = THREE.sRGBEncoding; 
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
+        // REBOUND NAVIGATION: Left click now cleanly handles the full Orbit camera rotations. 
+        controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: null };
+
+        const measurementGrid = new THREE.GridHelper(8, 32, 0xb0b3b8, 0xe4e6e8);
+        measurementGrid.position.y = -1.2;
+        scene.add(measurementGrid);
+
+        const axisPoints = [new THREE.Vector3(-3, 0, 0), new THREE.Vector3(3, 0, 0)];
+        const axisGeo = new THREE.BufferGeometry().setFromPoints(axisPoints);
+        const axisMat = new THREE.LineDashedMaterial({ color: 0x4752c4, dashSize: 0.08, gapSize: 0.05 });
+        const axisLine = new THREE.Line(axisGeo, axisMat);
+        axisLine.computeLineDistances();
+        scene.add(axisLine);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.4); 
+        keyLight.position.set(5, 8, 5);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0xfff5ea, 0.5);
+        fillLight.position.set(-5, 2, -3);
+        scene.add(fillLight);
+
+        const fruitMaterial = new THREE.MeshPhysicalMaterial({
+            map: textureColor, bumpMap: textureBump,
+            metalness: 0.0, reflectivity: 0.6,
+            transparent: true, opacity: 0.4, side: THREE.DoubleSide,
+            depthWrite: false
+        });
+
+        let fruitGeometry = new THREE.BufferGeometry();
+        const fruitMesh = new THREE.Mesh(fruitGeometry, fruitMaterial);
+        scene.add(fruitMesh);
+
+        const stemGroup = new THREE.Group();
+        const stemBaseGeo = new THREE.CylinderGeometry(0.025, 0.008, 0.04, 12);
+        const stemGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.12, 8);
+        const stemMat = new THREE.MeshStandardMaterial({ roughness: 0.9 });
+        const stemBase = new THREE.Mesh(stemBaseGeo, stemMat);
+        const stemStick = new THREE.Mesh(stemGeo, stemMat);
+        stemStick.position.z = 0.05; stemStick.rotation.x = Math.PI / 2; 
+        stemGroup.add(stemBase, stemStick);
+        scene.add(stemGroup); 
+
+        const overlayGroup = new THREE.Group();
+        scene.add(overlayGroup); 
+
+        function updateDataFields(index) {
+            const xVal = parseFloat(document.getElementById(`x-${index}`).value) || 0;
+            const rVal = parseFloat(document.getElementById(`r-${index}`).value) || 0;
+            runtimePoints[index].x = xVal / scaleFactor;
+            runtimePoints[index].r = rVal / scaleFactor;
+            updateGeometry();
+        }
+
+        function updateGeometry() {
+            const lathePoints = [];
+            const count = runtimePoints.length;
+
+            for (let i = 0; i < count; i++) {
+                const radiusR = runtimePoints[i].r;
+                const positionX = runtimePoints[i].x;
+                
+                lathePoints.push(new THREE.Vector2(radiusR, positionX));
+                visualMarkers[i].position.set(positionX, radiusR, 0);
+
+                if (radiusR > 0.001) {
+                    circumferenceRings[i].visible = true;
+                    circumferenceRings[i].position.set(positionX, 0, 0); 
+                    circumferenceRings[i].scale.set(radiusR, radiusR, 1); 
+                } else {
+                    circumferenceRings[i].visible = false;
+                }
+            }
+
+            fruitMesh.geometry.dispose();
+            
+            const splineCurve = new THREE.SplineCurve(lathePoints);
+            const smoothProfilePoints = splineCurve.getPoints(128);
+            
+            if (smoothProfilePoints.length > 2) {
+                smoothProfilePoints[1].y = smoothProfilePoints[0].y; 
+                smoothProfilePoints[smoothProfilePoints.length - 2].y = smoothProfilePoints[smoothProfilePoints.length - 1].y;
+            }
+
+            const temporaryGeo = new THREE.LatheGeometry(smoothProfilePoints, 128); 
+            temporaryGeo.rotateZ(-Math.PI / 2); 
+            
+            fruitMesh.geometry = temporaryGeo;
+            fruitMesh.position.set(0, 0, 0);
+            fruitMesh.rotation.set(0, 0, 0); // No spinning coordinates forced onto the mesh bounds
+
+            stemGroup.position.set(runtimePoints[0].x, 0, 0);
+            stemGroup.rotation.set(0, 0, -Math.PI / 2);
+            
+            const midX = (runtimePoints[0].x + runtimePoints[count - 1].x) / 2;
+            controls.target.set(midX, 0, 0);
+        }
+
+        function updateVisualization() {
+            const opacityVal = parseFloat(document.getElementById('opacity-slider').value);
+            const showGrid = document.getElementById('grid-toggle').checked;
+            fruitMaterial.opacity = opacityVal;
+            measurementGrid.visible = showGrid;
+            axisLine.visible = showGrid;
+        }
+
+        loadTargetPreset();
+        updateVisualization();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // ALL AUTO-SPIN LOGIC REMOVED
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
