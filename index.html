@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Calculus Fruit Visualizer</title>
+    <title>Advanced Calculus Volume Visualizer</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
@@ -30,8 +30,8 @@
             background: #1e1e1e;
             border-right: 2px solid #333333;
             padding: 20px;
-            width: 380px;
-            min-width: 320px;
+            width: 420px; 
+            min-width: 360px;
             max-width: 600px;
             box-shadow: 4px 0 12px rgba(0, 0, 0, 0.2);
             z-index: 10;
@@ -80,14 +80,21 @@
             background: #151515;
             border: 1px solid #2d2d2d;
             border-radius: 6px;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 10px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: background 0.3s, border-color 0.3s;
         }
         body.light-mode #math-panel {
             background: #f1f3f5;
             border-color: #dcdee0;
+        }
+
+        .volume-readout {
+            margin-top: 6px;
+            font-size: 0.88rem;
+            display: flex;
+            justify-content: space-between;
         }
 
         .view-controls {
@@ -109,6 +116,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
+            gap: 10px;
         }
 
         label {
@@ -118,8 +126,8 @@
         }
         body.light-mode label { color: #444444; }
 
-        select {
-            width: 125px;
+        select, input[type="text"] {
+            width: 175px;
             background: #333333;
             border: 1px solid #555555;
             color: #ffffff;
@@ -128,10 +136,15 @@
             font-size: 0.85rem;
             transition: background 0.3s, border-color 0.3s, color 0.3s;
         }
-        body.light-mode select {
+        body.light-mode select, body.light-mode input[type="text"] {
             background: #ffffff;
             border-color: #c1c4c8;
             color: #111111;
+        }
+
+        input[type="text"] {
+            width: 163px;
+            font-family: monospace;
         }
 
         table {
@@ -171,7 +184,23 @@
         }
         body.light-mode input[type="number"] { background: #ffffff; border-color: #c1c4c8; color: #111111; }
 
-        input[type="range"] { width: 125px; accent-color: #5a67d8; }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #5a67d8;
+            font-weight: bold;
+            min-width: 24px;
+            text-align: right;
+        }
+        body.light-mode .slider-value { color: #4752c4; }
+
+        input[type="range"] { width: 115px; accent-color: #5a67d8; }
         body.light-mode input[type="range"] { accent-color: #4752c4; }
 
         #play-button {
@@ -217,6 +246,13 @@
         body.light-mode #mode-toggle .moon-icon { display: block; }
         body.light-mode #mode-toggle .sun-icon { display: none; }
         #mode-toggle .moon-icon { display: none; }
+        
+        .error-msg {
+            color: #e53e3e;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -227,11 +263,19 @@
     </button>
 
     <div id="control-panel">
-        <h2>Fruit Visualizer</h2>
+        <h2>Volume Visualizer</h2>
         
         <div id="math-panel">
-            <div id="latex-formula">$$V = \pi \int_{a}^{b} [r(x)]^2 dx$$</div>
-            <div id="calculated-volume" style="font-weight: bold; margin-top: 5px; color: #5a67d8;">Calculated Volume: --</div>
+            <div id="latex-formula">\(V = \pi \int_{a}^{b} [r(x)]^2 dx\)</div>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 8px 0;">
+            <div class="volume-readout">
+                <span>Exact Volume (\(\int\)):</span>
+                <span id="exact-volume" style="font-weight: bold; color: #48bb78;">--</span>
+            </div>
+            <div class="volume-readout" id="approx-readout-row">
+                <span>Approx. Slice Sum (\(\Sigma\)):</span>
+                <span id="approx-volume" style="font-weight: bold; color: #5a67d8;">--</span>
+            </div>
         </div>
 
         <div class="scrollable-content">
@@ -240,31 +284,70 @@
                 <div class="control-group">
                     <label>Target Preset</label>
                     <select id="preset-select" onchange="loadTargetPreset()">
-                        <option value="orange" selected>Orange</option>
-                        <option value="kiwi">Kiwi</option>
-                        <option value="potato">Potato</option>
-                        <option value="carrot">Carrot</option>
-                        <option value="apple">Apple</option>
+                        <optgroup label="Fruit Geometries">
+                            <option value="orange" selected>Orange</option>
+                            <option value="kiwi">Kiwi</option>
+                            <option value="potato">Potato</option>
+                            <option value="carrot">Carrot</option>
+                            <option value="apple">Apple</option>
+                        </optgroup>
+                        <optgroup label="Theoretical Math Models">
+                            <option value="math_disk">Disk: r(x) = √x</option>
+                            <option value="math_washer">Washers</option>
+                            <option value="math_cs_square">Cross-Section: Squares on y=√x</option>
+                            <option value="math_cs_triangle">Cross-Section: Right Triangles</option>
+                            <option value="math_cs_equilateral">Cross-Section: Equilateral Δ</option>
+                        </optgroup>
+                        <optgroup label="Custom Input">
+                            <option value="custom_equation">Custom Equation f(x)</option>
+                        </optgroup>
                     </select>
                 </div>
-                <div class="control-group">
+                <div class="control-group" id="points-count-row">
                     <label>Active Input Points</label>
                     <select id="points-count-select" onchange="handlePointsCountChange()"></select>
                 </div>
             </div>
 
-            <div class="section-title">Riemann & Render Settings</div>
-            <div class="view-controls">
+            <div id="custom-equation-controls" class="view-controls" style="display: none;">
                 <div class="control-group">
-                    <label>Approximation Mode</label>
-                    <select id="render-mode" onchange="updateVisualization()">
-                        <option value="smooth" selected>Smooth</option>
-                        <option value="disks">Discrete</option>
-                    </select>
+                    <label>f(x) =</label>
+                    <div>
+                        <input type="text" id="custom-f-string" value="Math.sin(x) + 1.5" oninput="parseCustomEquation()">
+                        <div id="equation-error" class="error-msg">Invalid math syntax</div>
+                    </div>
                 </div>
                 <div class="control-group">
-                    <label>Disk Subdivisions (n)</label>
-                    <input type="range" id="disk-count" min="3" max="100" step="1" value="11" oninput="updateVisualization()">
+                    <label>Interval [a, b]</label>
+                    <div>
+                        <input type="number" id="custom-a" value="0" step="0.5" style="width:45px;" oninput="parseCustomEquation()"> to 
+                        <input type="number" id="custom-b" value="6" step="0.5" style="width:45px;" oninput="parseCustomEquation()">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Axis of Revolution</label>
+                    <select id="custom-axis" onchange="parseCustomEquation()" style="width:110px;">
+                        <option value="x" selected>X-Axis</option>
+                        <option value="y">Y-Axis (Shells)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-title">Riemann & Render Settings</div>
+            <div class="view-controls">
+                <div class="control-group" id="approx-mode-row">
+                    <label>Approximation Mode</label>
+                    <select id="render-mode" onchange="updateVisualization()">
+                        <option value="disks" selected>Discrete</option>
+                        <option value="smooth">Smooth</option>
+                    </select>
+                </div>
+                <div class="control-group" id="disk-count-row">
+                    <label>Subdivisions (n)</label>
+                    <div class="slider-container">
+                        <input type="range" id="disk-count" min="3" max="100" step="1" value="10" oninput="updateVisualization()">
+                        <span id="disk-count-val" class="slider-value">10</span>
+                    </div>
                 </div>
                 <div class="control-group">
                     <label>Animation Speed</label>
@@ -280,17 +363,19 @@
                 </div>
             </div>
 
-            <div class="section-title">Profile Coordinates</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Node</th>
-                        <th>Position (X)</th>
-                        <th>Radius r(x)</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
+            <div id="coordinates-section">
+                <div class="section-title">Profile Coordinates</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Node</th>
+                            <th>Position (X)</th>
+                            <th>Radius r(x)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -309,34 +394,47 @@
         const coreColors = { orange: '#fce3b6', kiwi: '#d5e6a1', potato: '#ebdca2', carrot: '#ff9d42', apple: '#fbfade' };
 
         const presets = {
-            orange: {
-                data: [{x:9,r:0},{x:9,r:1.65},{x:8,r:3.35},{x:7,r:4.1},{x:6,r:4.55},{x:5,r:4.75},{x:4,r:4.8},{x:3,r:4.6},{x:2,r:4.05},{x:1,r:2.85},{x:0,r:0}],
-                roughness: 0.5, clearcoat: 0.4, bumpScale: 0.007, stemColor: 0x3d5229, stemVisible: true,
-                draw: (m, b) => { m.fillStyle = '#ff7605'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); }
+            orange: { isMath: false, isCustom: false, data: [{x:0,r:0},{x:1,r:2.85},{x:2,r:4.05},{x:3,r:4.6},{x:4,r:4.8},{x:5,r:4.75},{x:6,r:4.55},{x:7,r:4.1},{x:8,r:3.35},{x:9,r:1.65},{x:10,r:0}], roughness: 0.5, clearcoat: 0.4, bumpScale: 0.007, stemColor: 0x3d5229, stemVisible: true, draw: (m, b) => { m.fillStyle = '#ff7605'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); } },
+            kiwi: { isMath: false, isCustom: false, data: [{x:0.5,r:0},{x:1.5,r:2.3},{x:2.5,r:3.2},{x:3.5,r:3.5},{x:4.5,r:3.6},{x:5.5,r:3.6},{x:6.5,r:3.5},{x:7.5,r:3.1},{x:8.5,r:2.1},{x:9.5,r:0}], roughness: 0.9, clearcoat: 0.0, bumpScale: 0.015, stemColor: 0x221a12, stemVisible: false, draw: (m, b) => { m.fillStyle = '#705133'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); } },
+            potato: { isMath: false, isCustom: false, data: [{x:0,r:0},{x:1.5,r:2.2},{x:3.0,r:2.8},{x:4.5,r:2.9},{x:6.0,r:3.0},{x:7.5,r:2.7},{x:9.0,r:1.8},{x:10.5,r:0}], roughness: 0.85, clearcoat: 0.0, bumpScale: 0.012, stemColor: 0x1a120b, stemVisible: false, draw: (m, b) => { m.fillStyle = '#b38f5c'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); } },
+            carrot: { isMath: false, isCustom: false, data: [{x:0,r:0},{x:1.5,r:0.6},{x:3.0,r:1.0},{x:4.5,r:1.3},{x:6.0,r:1.5},{x:7.5,r:1.4},{x:9.0,r:1.2},{x:10.5,r:0}], roughness: 0.6, clearcoat: 0.15, bumpScale: 0.01, stemColor: 0x517332, stemVisible: true, draw: (m, b) => { m.fillStyle = '#ff6b00'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); } },
+            apple: { 
+                isMath: false, 
+                isCustom: false, 
+                data: [
+                    {x: 0.0, r: 0.0},
+                    {x: 0.4, r: 1.5},
+                    {x: 1.2, r: 3.6},
+                    {x: 2.2, r: 4.4},
+                    {x: 3.5, r: 4.2},
+                    {x: 4.8, r: 3.7},
+                    {x: 5.8, r: 3.0},
+                    {x: 6.6, r: 2.3},
+                    {x: 7.0, r: 0.8},
+                    {x: 7.2, r: 0.0}
+                ], 
+                roughness: 0.22, 
+                clearcoat: 0.8, 
+                bumpScale: 0.003, 
+                stemColor: 0x2b1e11, 
+                stemVisible: true, 
+                draw: (m, b) => { 
+                    m.fillStyle = '#cc1818'; m.fillRect(0,0,512,512); 
+                    b.fillStyle = '#808080'; b.fillRect(0,0,512,512); 
+                } 
             },
-            kiwi: {
-                data: [{x:8.5,r:0},{x:8,r:2.1},{x:7,r:3.1},{x:6,r:3.5},{x:5,r:3.6},{x:4,r:3.6},{x:3,r:3.5},{x:2,r:3.2},{x:1,r:2.3},{x:0.5,r:0}],
-                roughness: 0.9, clearcoat: 0.0, bumpScale: 0.015, stemColor: 0x221a12, stemVisible: false,
-                draw: (m, b) => { m.fillStyle = '#705133'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); }
-            },
-            potato: {
-                data: [{x:10,r:0},{x:9,r:1.8},{x:7.5,r:2.7},{x:6,r:3.0},{x:4.5,r:2.9},{x:3,r:2.8},{x:1.5,r:2.2},{x:0,r:0}],
-                roughness: 0.85, clearcoat: 0.0, bumpScale: 0.012, stemColor: 0x1a120b, stemVisible: false,
-                draw: (m, b) => { m.fillStyle = '#b38f5c'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); }
-            },
-            carrot: {
-                data: [{x:11,r:0},{x:10,r:1.2},{x:8.5,r:1.4},{x:7,r:1.5},{x:5,r:1.3},{x:3,r:1.0},{x:1,r:0.6},{x:0,r:0}],
-                roughness: 0.6, clearcoat: 0.15, bumpScale: 0.01, stemColor: 0x517332, stemVisible: true,
-                draw: (m, b) => { m.fillStyle = '#ff6b00'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); }
-            },
-            apple: {
-                data: [{x:7.5,r:0},{x:7,r:2.4},{x:6,r:3.8},{x:4.5,r:4.1},{x:3,r:4.0},{x:1.5,r:3.4},{x:0.5,r:2.0},{x:0,r:0}],
-                roughness: 0.22, clearcoat: 0.8, bumpScale: 0.003, stemColor: 0x2b1e11, stemVisible: true,
-                draw: (m, b) => { m.fillStyle = '#cc1818'; m.fillRect(0,0,512,512); b.fillStyle = '#808080'; b.fillRect(0,0,512,512); }
-            }
+            
+            math_disk: { isMath: true, isCustom: false, type: 'disk', xStart: 0, xEnd: 4, f: (x) => Math.sqrt(x), g: (x) => 0, color: 0x3182ce },
+            math_washer: { isMath: true, isCustom: false, type: 'washer', xStart: 0.5, xEnd: 4.0, f: (x) => Math.sqrt(x) + 1.5, g: (x) => 0.5 * x, color: 0xdd6b20 },
+            math_cs_square: { isMath: true, isCustom: false, type: 'cs_square', xStart: 0, xEnd: 4, f: (x) => Math.sqrt(x), g: (x) => 0, color: 0x38a169 },
+            math_cs_triangle: { isMath: true, isCustom: false, type: 'cs_triangle', xStart: 0, xEnd: 3, f: (x) => 1 + (x/2), g: (x) => 0, color: 0x805ad5 },
+            math_cs_equilateral: { isMath: true, isCustom: false, type: 'cs_equilateral', xStart: 0, xEnd: Math.PI, f: (x) => Math.sin(x) * 1.5, g: (x) => 0, color: 0xe53e3e },
+            
+            custom_equation: { isMath: false, isCustom: true, color: 0x00b5d8 }
         };
 
         let activePresetPointsData = [], runtimePoints = [], visualMarkers = [];
+        let parsedUserCompiledFn = (x) => Math.sqrt(x); 
         const desmosColors = [0xc74440, 0x2d70b3, 0x388c46, 0x6042a6, 0xfa7e19, 0x00a3a3];
         const markerGeo = new THREE.SphereGeometry(0.025, 16, 16);
 
@@ -351,10 +449,11 @@
         });
 
         const interiorMaterial = new THREE.MeshStandardMaterial({ roughness: 0.8, side: THREE.DoubleSide });
+        const mathSolidMaterial = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.1, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
 
         const scene = new THREE.Scene(); scene.background = new THREE.Color(0x121212);
         const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(1.5, 1.5, 4.0);
+        camera.position.set(2.5, 3.0, 5.0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -384,68 +483,55 @@
         stemStick.position.z = 0.05; stemStick.rotation.x = Math.PI / 2;
         stemGroup.add(stemBase, stemStick); scene.add(stemGroup);
 
-        // --- Sextic Regression Engine Math ---
-        function getSexticCoefficients(pts) {
-            const degree = 6;
-            const order = degree + 1;
-            const n = pts.length;
-
-            let X = Array(order).fill(0).map(() => Array(order).fill(0));
-            let Y = Array(order).fill(0);
-
-            for (let i = 0; i < n; i++) {
-                const x = pts[i].x;
-                const r = pts[i].r;
-                for (let row = 0; row < order; row++) {
-                    for (let col = 0; col < order; col++) {
-                        X[row][col] += Math.pow(x, row + col);
-                    }
-                    Y[row] += r * Math.pow(x, row);
-                }
+        function evaluateSplineRadius(xTarget) {
+            if (runtimePoints.length === 0) return 0;
+            
+            const pts = [...runtimePoints].sort((a, b) => a.x - b.x);
+            
+            if (xTarget <= pts[0].x) return Math.max(0, pts[0].r * scaleFactor);
+            if (xTarget >= pts[pts.length - 1].x) return Math.max(0, pts[pts.length - 1].r * scaleFactor);
+            
+            let i = 0;
+            while (i < pts.length - 1 && xTarget > pts[i+1].x) {
+                i++;
             }
-
-            for (let i = 0; i < order; i++) {
-                let maxEl = Math.abs(X[i][i]), maxRow = i;
-                for (let k = i + 1; k < order; k++) {
-                    if (Math.abs(X[k][i]) > maxEl) {
-                        maxEl = Math.abs(X[k][i]);
-                        maxRow = k;
-                    }
-                }
-                for (let k = i; k < order; k++) {
-                    let tmp = X[maxRow][k]; X[maxRow][k] = X[i][k]; X[i][k] = tmp;
-                }
-                let tmp = Y[maxRow]; Y[maxRow] = Y[i]; Y[i] = tmp;
-
-                if (Math.abs(X[i][i]) < 1e-9) continue; 
-
-                for (let k = i + 1; k < order; k++) {
-                    let c = -X[k][i] / X[i][i];
-                    for (let j = i; j < order; j++) {
-                        if (i === j) X[k][j] = 0;
-                        else X[k][j] += c * X[i][j];
-                    }
-                    Y[k] += c * Y[i];
-                }
-            }
-
-            let coef = Array(order).fill(0);
-            for (let i = order - 1; i >= 0; i--) {
-                if (Math.abs(X[i][i]) < 1e-9) { coef[i] = 0; continue; }
-                coef[i] = Y[i] / X[i][i];
-                for (let k = i - 1; k >= 0; k--) {
-                    Y[k] -= X[k][i] * coef[i];
-                }
-            }
-            return coef;
+            
+            const p1 = pts[i];
+            const p2 = pts[i+1];
+            const p0 = i > 0 ? pts[i-1] : p1;
+            const p3 = i < pts.length - 2 ? pts[i+2] : p2;
+            
+            const t = (xTarget - p1.x) / (p2.x - p1.x);
+            
+            const t2 = t * t;
+            const t3 = t2 * t;
+            
+            const f1 = -0.5 * t3 + t2 - 0.5 * t;
+            const f2 = 1.5 * t3 - 2.5 * t2 + 1.0;
+            const f3 = -1.5 * t3 + 2.0 * t2 + 0.5 * t;
+            const f4 = 0.5 * t3 - 0.5 * t2;
+            
+            const calculatedRadius = (p0.r * f1 + p1.r * f2 + p2.r * f3 + p3.r * f4) * scaleFactor;
+            return Math.max(0, calculatedRadius);
         }
 
-        function evaluateSextic(coef, x) {
-            let val = 0;
-            for (let i = 0; i < coef.length; i++) {
-                val += coef[i] * Math.pow(x, i);
+        function parseCustomEquation() {
+            const equationStr = document.getElementById('custom-f-string').value;
+            const errorDiv = document.getElementById('equation-error');
+            
+            try {
+                const sanitized = equationStr.replace(/Math\./g, '');
+                const targetFn = new Function('x', `with (Math) { return ${sanitized}; }`);
+                
+                const testVal = targetFn(1);
+                if (isNaN(testVal)) throw new Error();
+
+                parsedUserCompiledFn = targetFn;
+                errorDiv.style.display = 'none';
+                updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : Math.PI * 2);
+            } catch (e) {
+                errorDiv.style.display = 'block';
             }
-            return Math.max(0, val);
         }
 
         function loadTargetPreset() {
@@ -455,53 +541,89 @@
             const currentKey = document.getElementById('preset-select').value;
             const target = presets[currentKey];
 
-            interiorMaterial.color.set(coreColors[currentKey] || '#eedcb3');
+            const isMathPreset = target.isMath && !target.isCustom;
+            
+            document.getElementById('coordinates-section').style.display = (!target.isMath && !target.isCustom) ? 'block' : 'none';
+            document.getElementById('points-count-row').style.display = (!target.isMath && !target.isCustom) ? 'flex' : 'none';
+            document.getElementById('custom-equation-controls').style.display = target.isCustom ? 'block' : 'none';
+            document.getElementById('approx-mode-row').style.display = (!target.isMath && !target.isCustom) ? 'flex' : 'none';
+            
+            document.getElementById('approx-readout-row').style.display = isMathPreset ? 'none' : 'flex';
 
-            mCtx.globalAlpha = 1.0; bCtx.globalAlpha = 1.0;
-            target.draw(mCtx, bCtx);
-            textureColor.needsUpdate = true; textureBump.needsUpdate = true;
+            stemGroup.visible = false;
+            fruitMesh.visible = false;
 
-            fruitMaterial.roughness = target.roughness;
-            fruitMaterial.clearcoat = target.clearcoat;
-            fruitMaterial.bumpScale = target.bumpScale;
-            stemMat.color.setHex(target.stemColor);
-            stemGroup.visible = target.stemVisible;
-
-            activePresetPointsData = target.data.map(d => ({ x: d.x, r: d.r }));
-
-            const countSelect = document.getElementById('points-count-select');
-            countSelect.innerHTML = '';
-            for (let k = 3; k <= activePresetPointsData.length; k++) {
-                const opt = document.createElement('option');
-                opt.value = k; opt.innerText = k;
-                if (k === activePresetPointsData.length) opt.selected = true;
-                countSelect.appendChild(opt);
-            }
-
-            document.getElementById('disk-count').value = activePresetPointsData.length;
-
-            buildControlTableAndMeshes(activePresetPointsData.length);
-        }
-
-        function handlePointsCountChange() {
-            const count = parseInt(document.getElementById('points-count-select').value);
-            document.getElementById('disk-count').value = count;
-            buildControlTableAndMeshes(count);
-        }
-
-        function buildControlTableAndMeshes(numPointsToUse) {
-            if (activePresetPointsData.length > numPointsToUse) {
-                activePresetPointsData = activePresetPointsData.slice(0, numPointsToUse);
-            } else if (activePresetPointsData.length < numPointsToUse) {
-                const last = activePresetPointsData[activePresetPointsData.length - 1] || { x: 0, r: 0 };
-                while (activePresetPointsData.length < numPointsToUse) activePresetPointsData.push({ x: last.x, r: last.r });
-            }
-
-            runtimePoints = [];
             while(overlayGroup.children.length > 0) {
                 overlayGroup.children[0].geometry.dispose();
                 overlayGroup.remove(overlayGroup.children[0]);
             }
+
+            const diskCountSlider = document.getElementById('disk-count');
+            const diskCountVal = document.getElementById('disk-count-val');
+
+            if(target.isMath || target.isCustom) {
+                diskCountSlider.value = 4;
+                diskCountVal.innerText = 4;
+                mathSolidMaterial.color.setHex(target.color || 0x3182ce);
+                if (target.isCustom) parseCustomEquation();
+                else updateGeometry(Math.PI * 2);
+            } else {
+                interiorMaterial.color.set(coreColors[currentKey] || '#eedcb3');
+                mCtx.globalAlpha = 1.0; bCtx.globalAlpha = 1.0;
+                target.draw(mCtx, bCtx);
+                textureColor.needsUpdate = true; textureBump.needsUpdate = true;
+
+                fruitMaterial.roughness = target.roughness;
+                fruitMaterial.clearcoat = target.clearcoat;
+                fruitMaterial.bumpScale = target.bumpScale;
+                stemMat.color.setHex(target.stemColor);
+                stemGroup.visible = target.stemVisible;
+
+                activePresetPointsData = target.data.map(d => ({ x: d.x, r: d.r }));
+
+                const countSelect = document.getElementById('points-count-select');
+                countSelect.innerHTML = '';
+                for (let k = 4; k <= fullPresetLength(currentKey); k++) {
+                    const opt = document.createElement('option');
+                    opt.value = k; opt.innerText = k;
+                    if (k === activePresetPointsData.length) opt.selected = true;
+                    countSelect.appendChild(opt);
+                }
+                
+                const initialSubdivisions = activePresetPointsData.length - 1;
+                diskCountSlider.value = initialSubdivisions;
+                diskCountVal.innerText = initialSubdivisions;
+                buildControlTableAndMeshes(parseInt(countSelect.value));
+            }
+        }
+
+        function fullPresetLength(key) {
+            return presets[key] && presets[key].data ? presets[key].data.length : 8;
+        }
+
+        function handlePointsCountChange() {
+            const count = parseInt(document.getElementById('points-count-select').value);
+            const requiredCrossSections = count - 1;
+            document.getElementById('disk-count').value = requiredCrossSections;
+            document.getElementById('disk-count-val').innerText = requiredCrossSections;
+            buildControlTableAndMeshes(count);
+        }
+
+        function buildControlTableAndMeshes(numPointsToUse) {
+            const currentKey = document.getElementById('preset-select').value;
+            const fullPresetData = presets[currentKey].data;
+
+            activePresetPointsData = [];
+            for(let i = 0; i < numPointsToUse; i++) {
+                if (fullPresetData[i]) {
+                    activePresetPointsData.push({ x: fullPresetData[i].x, r: fullPresetData[i].r });
+                } else {
+                    const last = activePresetPointsData[activePresetPointsData.length - 1];
+                    activePresetPointsData.push({ x: last.x + 1, r: Math.max(0, last.r - 0.5) });
+                }
+            }
+
+            runtimePoints = [];
             visualMarkers = [];
 
             const tbody = document.getElementById('table-body');
@@ -524,8 +646,7 @@
             });
 
             animationProgress = 0.0;
-            updateGeometry(0.001);
-            updateVisualization();
+            updateGeometry(Math.PI * 2);
         }
 
         function updateDataFields(index) {
@@ -534,163 +655,294 @@
             activePresetPointsData[index].x = xVal; activePresetPointsData[index].r = rVal;
             runtimePoints[index].x = xVal / scaleFactor; runtimePoints[index].r = rVal / scaleFactor;
             
-            updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : 0.001);
+            updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : Math.PI * 2);
         }
 
-        function calculateMathematicalVolume() {
-            if(runtimePoints.length < 2) return;
+        function getExactTheoreticalVolume(f, g, xStart, xEnd, type, axis) {
+            let sum = 0;
+            const steps = 500; 
+            const dx = (xEnd - xStart) / steps;
             
-            const renderMode = document.getElementById('render-mode').value;
-            let computedVolume = 0;
-
-            const a = activePresetPointsData[activePresetPointsData.length - 1].x;
-            const b = activePresetPointsData[0].x;
-            const n = parseInt(document.getElementById('disk-count').value);
-
-            if (renderMode === 'disks') {
-                if (n === runtimePoints.length) {
-                    for (let i = runtimePoints.length - 1; i > 0; i--) {
-                        const xLeft = runtimePoints[i].x * scaleFactor;
-                        const xRight = runtimePoints[i-1].x * scaleFactor;
-                        const dx = Math.abs(xRight - xLeft);
-                        
-                        const rLeft = runtimePoints[i].r * scaleFactor;
-                        const rRight = runtimePoints[i-1].r * scaleFactor;
-                        const radiusMid = (rLeft + rRight) / 2;
-
-                        computedVolume += Math.PI * Math.pow(radiusMid, 2) * dx;
-                    }
-                } else {
-                    const coef = getSexticCoefficients(runtimePoints);
-                    const startX = runtimePoints[runtimePoints.length - 1].x;
-                    const endX = runtimePoints[0].x;
-                    const dx = (endX - startX) / n;
-
-                    for (let i = 0; i < n; i++) {
-                        const xLeft = startX + i * dx;
-                        const xMid = xLeft + dx / 2;
-                        const radius = evaluateSextic(coef, xMid) * scaleFactor;
-                        computedVolume += Math.PI * Math.pow(radius, 2) * (dx * scaleFactor);
-                    }
+            for (let i = 0; i < steps; i++) {
+                const x = xStart + (i + 0.5) * dx;
+                let area = 0;
+                
+                if (type === 'disk' || (type === 'custom' && axis === 'x')) {
+                    area = Math.PI * Math.pow(Math.max(0, f(x)), 2);
+                } else if (type === 'custom' && axis === 'y') {
+                    area = 2 * Math.PI * Math.abs(x) * Math.max(0, f(x));
+                } else if (type === 'washer') {
+                    area = Math.PI * (Math.pow(Math.max(0, f(x)), 2) - Math.pow(Math.max(0, g(x)), 2));
+                } else if (type === 'cs_square') {
+                    area = Math.pow(Math.max(0, f(x)) - Math.max(0, g(x)), 2);
+                } else if (type === 'cs_triangle') {
+                    area = 0.5 * Math.pow(Math.max(0, f(x)) - Math.max(0, g(x)), 2);
+                } else if (type === 'cs_equilateral') {
+                    area = (Math.sqrt(3) / 4) * Math.pow(Math.max(0, f(x)) - Math.max(0, g(x)), 2);
                 }
-                document.getElementById('calculated-volume').innerText = `Calculated Volume (Discrete): ${Math.abs(computedVolume).toFixed(3)} cm³`;
-            } else {
-                const samples = 200;
-                const lathePoints = runtimePoints.map(p => new THREE.Vector2(p.r * scaleFactor, p.x * scaleFactor));
-                const curve = new THREE.SplineCurve(lathePoints);
-                const totalWidth = b - a;
-                const dx = totalWidth / samples;
-
-                for(let i = 0; i <= samples; i++) {
-                    const evalX = a + i * dx;
-                    const t = (evalX - a) / (totalWidth || 1);
-                    const radiusAtX = curve.getPointAt(1 - t).x;
-                    const factor = (i === 0 || i === samples) ? 1 : (i % 2 === 0 ? 2 : 4);
-                    computedVolume += (factor * Math.PI * Math.pow(radiusAtX, 2) * dx) / 3;
-                }
-                document.getElementById('calculated-volume').innerText = `Calculated Volume (Smooth): ${Math.abs(computedVolume).toFixed(3)} cm³`;
+                sum += area * dx;
             }
+            return sum;
+        }
 
-            // FIX: Double-escaped backslashes so JavaScript outputs them cleanly for MathJax parsing
-            const latexContainer = document.getElementById('latex-formula');
-            latexContainer.innerHTML = `$$V \\approx \\sum_{i=1}^{n} \\pi \\cdot \\left[ r\\left(\\frac{x_{i-1} + x_i}{2}\\right) \\right]^2 \\Delta x$$`;
-            if (window.MathJax) MathJax.typesetPromise([latexContainer]);
+        function getApproximateSliderSum(f, g, xStart, xEnd, type, axis, n) {
+            let sum = 0;
+            const dx = (xEnd - xStart) / n;
+            
+            for (let i = 0; i < n; i++) {
+                const x = xStart + (i + 0.5) * dx;
+                let area = 0;
+                
+                if (type === 'disk' || (type === 'custom' && axis === 'x')) {
+                    area = Math.PI * Math.pow(Math.max(0, f(x)), 2);
+                } else if (type === 'custom' && axis === 'y') {
+                    area = 2 * Math.PI * Math.abs(x) * Math.max(0, f(x));
+                } else if (type === 'washer') {
+                    area = Math.PI * (Math.pow(Math.max(0, f(x)), 2) - Math.pow(Math.max(0, g(x)), 2));
+                } else if (type === 'cs_square') {
+                    area = Math.pow(Math.max(0, f(x)) - Math.max(0, g(x)), 2);
+                } else if (type === 'cs_triangle') {
+                    area = 0.5 * Math.pow(Math.max(0, f(x)) - Math.max(0, g(x)), 2);
+                } else if (type === 'cs_equilateral') {
+                    area = (Math.sqrt(3) / 4) * Math.pow(Math.max(0, f(x)) - Math.max(0, g(x)), 2);
+                }
+                sum += area * dx;
+            }
+            return sum;
         }
 
         function updateGeometry(phiLength = Math.PI * 2) {
-            const count = runtimePoints.length;
-            if (count === 0) return;
+            const currentKey = document.getElementById('preset-select').value;
+            const target = presets[currentKey];
+            const n = parseInt(document.getElementById('disk-count').value);
+            const renderMode = document.getElementById('render-mode').value;
+            const animFactor = phiLength / (Math.PI * 2);
 
-            for(let i=0; i<count; i++) {
-                if(visualMarkers[i]) visualMarkers[i].position.set(runtimePoints[i].x, runtimePoints[i].r, 0);
-            }
+            document.getElementById('disk-count-val').innerText = n;
 
-            fruitMesh.geometry.dispose();
+            if (fruitMesh.geometry) fruitMesh.geometry.dispose();
             while(diskGroup.children.length > 0) {
                 diskGroup.children[0].geometry.dispose();
                 diskGroup.remove(diskGroup.children[0]);
             }
 
-            const renderMode = document.getElementById('render-mode').value;
-            const n = parseInt(document.getElementById('disk-count').value);
+            let theoreticalExact = 0;
+            let theoreticalApprox = 0;
+            let latexString = "";
+            let unitLabel = target.isMath || target.isCustom ? "u³" : "cm³";
 
-            const lathePoints = runtimePoints.map(p => new THREE.Vector2(p.r, p.x));
-            const curve = new THREE.SplineCurve(lathePoints);
-            const smoothProfilePoints = curve.getPoints(128);
+            // ==========================================
+            // CASE A: MATH MODELS & CUSTOM EQUATIONS
+            // ==========================================
+            if (target.isMath || target.isCustom) {
+                let xStart = 0, xEnd = 0, f = null, g = null, type = '', axis = 'x';
 
-            const diskSliderRow = document.getElementById('disk-count').closest('.control-group');
-            
-            if (renderMode === 'smooth') {
-                diskSliderRow.style.opacity = '0.4';
-                diskSliderRow.style.pointerEvents = 'none';
-                
-                fruitMesh.visible = true;
-                const safePhi = Math.max(0.001, phiLength);
-                const geo = new THREE.LatheGeometry(smoothProfilePoints, 128, 0, safePhi);
-                geo.rotateZ(-Math.PI / 2);
-                fruitMesh.geometry = geo;
-
-                if (phiLength < Math.PI * 2 && phiLength > 0.05) {
-                    const capGeo = new THREE.LatheGeometry(smoothProfilePoints, 2, 0, 0.001);
-                    capGeo.rotateZ(-Math.PI / 2);
-                    const capMesh1 = new THREE.Mesh(capGeo, interiorMaterial);
-                    const capMesh2 = new THREE.Mesh(capGeo, interiorMaterial);
-                    capMesh2.rotation.x = phiLength;
-                    diskGroup.add(capMesh1, capMesh2);
-                }
-            } else {
-                diskSliderRow.style.opacity = '1';
-                diskSliderRow.style.pointerEvents = 'auto';
-                fruitMesh.visible = false;
-                
-                if (n === count) {
-                    for (let i = count - 1; i > 0; i--) {
-                        const ptLeft = runtimePoints[i];
-                        const ptRight = runtimePoints[i-1];
-                        const dx = ptRight.x - ptLeft.x;
-                        
-                        const radiusMid = (ptLeft.r + ptRight.r) / 2;
-                        const segmentMidX = ptLeft.x + dx / 2;
-
-                        if (radiusMid > 0.005 && Math.abs(dx) > 0.001) {
-                            const cylGeo = new THREE.CylinderGeometry(radiusMid, radiusMid, Math.abs(dx), 64, 1, false, 0, phiLength);
-                            cylGeo.rotateZ(Math.PI / 2);
-                            
-                            const cylMesh = new THREE.Mesh(cylGeo, [fruitMaterial, interiorMaterial, interiorMaterial]);
-                            cylMesh.position.x = segmentMidX;
-                            diskGroup.add(cylMesh);
-                        }
-                    }
+                if (target.isCustom) {
+                    xStart = parseFloat(document.getElementById('custom-a').value) || 0;
+                    xEnd = parseFloat(document.getElementById('custom-b').value) || 1;
+                    f = parsedUserCompiledFn;
+                    g = (x) => 0;
+                    type = 'custom';
+                    axis = document.getElementById('custom-axis').value;
                 } else {
-                    const coef = getSexticCoefficients(runtimePoints);
-                    const startX = runtimePoints[count - 1].x;
-                    const endX = runtimePoints[0].x;
-                    const totalLength = endX - startX;
-                    const dx = totalLength / n;
+                    xStart = target.xStart; xEnd = target.xEnd;
+                    f = target.f; g = target.g; type = target.type;
+                }
 
-                    for (let i = 0; i < n; i++) {
-                        const xLeft = startX + i * dx;
-                        const segmentMidX = xLeft + dx / 2;
-                        const radiusMid = evaluateSextic(coef, segmentMidX);
+                const totalW = xEnd - xStart;
+                if (totalW <= 0.001) return;
 
-                        if (radiusMid > 0.005 && Math.abs(dx) > 0.001) {
-                            const cylGeo = new THREE.CylinderGeometry(radiusMid, radiusMid, Math.abs(dx), 64, 1, false, 0, phiLength);
-                            cylGeo.rotateZ(Math.PI / 2);
-                            
-                            const cylMesh = new THREE.Mesh(cylGeo, [fruitMaterial, interiorMaterial, interiorMaterial]);
-                            cylMesh.position.x = segmentMidX;
-                            diskGroup.add(cylMesh);
+                theoreticalExact = getExactTheoreticalVolume(f, g, xStart, xEnd, type, axis);
+                theoreticalApprox = getApproximateSliderSum(f, g, xStart, xEnd, type, axis, n);
+
+                if (type === 'disk') latexString = `V = \\pi \\int_{${xStart}}^{${xEnd}} (\\sqrt{x})^2 dx`;
+                else if (type === 'washer') latexString = `V = \\pi \\int_{${xStart.toFixed(1)}}^{${xEnd.toFixed(1)}} \\left[(\\sqrt{x}+1.5)^2 - (0.5x)^2\\right] dx`;
+                else if (type === 'cs_square') latexString = `V = \\int_{${xStart}}^{${xEnd}} [\\sqrt{x}]^2 dx`;
+                else if (type === 'cs_triangle') latexString = `V = \\int_{${xStart}}^{${xEnd}} \\frac{1}{2} (1 + \\frac{x}{2})^2 dx`;
+                else if (type === 'cs_equilateral') latexString = `V = \\int_{${xStart}}^{${xEnd}} \\frac{\\sqrt{3}}{4} (1.5\\sin x)^2 dx`;
+                else if (type === 'custom') {
+                    latexString = axis === 'x' ? `V = \\pi \\int_{${xStart}}^{${xEnd}} [f(x)]^2 dx` : `V = 2\\pi \\int_{${xStart}}^{${xEnd}} x \\cdot f(x) \\, dx`;
+                }
+
+                const dx = totalW / n;
+                const centerShift = (xEnd + xStart) / 2;
+                for (let i = 0; i < n; i++) {
+                    const xm = xStart + (i + 0.5) * dx;
+                    const midXScaled = (xm - centerShift) / (scaleFactor / 2.5);
+                    const dxScaled = dx / (scaleFactor / 2.5);
+                    const evalR = Math.max(0, f(xm)) / (scaleFactor / 2.5);
+                    const evalInnerR = Math.max(0, g(xm)) / (scaleFactor / 2.5);
+
+                    if (type === 'disk' || (type === 'custom' && axis === 'x')) {
+                        if (evalR > 0.01) {
+                            const cyl = new THREE.CylinderGeometry(evalR, evalR, dxScaled, 32, 1, false, 0, phiLength);
+                            cyl.rotateZ(Math.PI / 2);
+                            const m = new THREE.Mesh(cyl, mathSolidMaterial);
+                            m.position.x = midXScaled; diskGroup.add(m);
+                        }
+                    } else if (type === 'custom' && axis === 'y') {
+                        const shellRadius = Math.abs(xm) / (scaleFactor / 2.5);
+                        if (evalR > 0.01 && shellRadius > 0.01) {
+                            const shellHeight = evalR * animFactor;
+                            const shellGeo = new THREE.CylinderGeometry(shellRadius, shellRadius, shellHeight, 32, 1, true, 0, Math.PI * 2);
+                            shellGeo.translate(0, shellHeight / 2, 0);
+                            const m = new THREE.Mesh(shellGeo, mathSolidMaterial);
+                            m.position.x = midXScaled; diskGroup.add(m);
+                        }
+                    } else if (type === 'washer') {
+                        if (evalR > 0.01) {
+                            const ringGeo = new THREE.CylinderGeometry(evalR, evalR, dxScaled, 32, 1, true, 0, phiLength);
+                            ringGeo.rotateZ(Math.PI / 2);
+                            const mOuter = new THREE.Mesh(ringGeo, mathSolidMaterial);
+                            mOuter.position.x = midXScaled; diskGroup.add(mOuter);
+
+                            if(evalInnerR > 0.005) {
+                                const innerGeo = new THREE.CylinderGeometry(evalInnerR, evalInnerR, dxScaled, 32, 1, true, 0, phiLength);
+                                innerGeo.rotateZ(Math.PI / 2);
+                                const mInner = new THREE.Mesh(innerGeo, mathSolidMaterial);
+                                mInner.position.x = midXScaled; diskGroup.add(mInner);
+                            }
+                        }
+                    } else if (type.startsWith('cs_')) {
+                        const baseWidth = evalR - evalInnerR;
+                        let shapeGeo = null;
+
+                        if (baseWidth > 0.01) {
+                            if (type === 'cs_square') {
+                                shapeGeo = new THREE.BoxGeometry(dxScaled, baseWidth * animFactor, baseWidth);
+                                shapeGeo.translate(0, (baseWidth * animFactor) / 2, 0);
+                            } else if (type === 'cs_triangle') {
+                                const trShape = new THREE.Shape();
+                                trShape.moveTo(0, 0); trShape.lineTo(baseWidth, 0);
+                                trShape.lineTo(0, baseWidth * animFactor); trShape.lineTo(0, 0);
+                                shapeGeo = new THREE.ExtrudeGeometry(trShape, { depth: dxScaled, bevelEnabled: false });
+                                shapeGeo.rotateY(Math.PI / 2); shapeGeo.translate(0, 0, -baseWidth / 2);
+                            } else if (type === 'cs_equilateral') {
+                                const eqShape = new THREE.Shape();
+                                eqShape.moveTo(-baseWidth / 2, 0); eqShape.lineTo(baseWidth / 2, 0);
+                                eqShape.lineTo(0, baseWidth * (Math.sqrt(3) / 2) * animFactor); eqShape.lineTo(-baseWidth / 2, 0);
+                                shapeGeo = new THREE.ExtrudeGeometry(eqShape, { depth: dxScaled, bevelEnabled: false });
+                                shapeGeo.rotateY(Math.PI / 2);
+                            }
+                            if (shapeGeo) {
+                                const m = new THREE.Mesh(shapeGeo, mathSolidMaterial);
+                                m.position.x = midXScaled; diskGroup.add(m);
+                            }
                         }
                     }
                 }
             }
+            // ==========================================
+            // CASE B: INTERPOLATED FRUIT PROFILES
+            // ==========================================
+            else {
+                const count = runtimePoints.length;
+                if (count === 0) return;
 
-            if(runtimePoints[0]) {
-                stemGroup.position.set(runtimePoints[0].x, 0, 0);
-                stemGroup.rotation.set(0, 0, -Math.PI / 2);
+                const sortedRuntimePoints = [...runtimePoints].sort((a, b) => a.x - b.x);
+
+                for(let i=0; i<count; i++) {
+                    if(visualMarkers[i]) visualMarkers[i].position.set(runtimePoints[i].x, runtimePoints[i].r, 0);
+                }
+
+                const minX = sortedRuntimePoints[0].x; 
+                const maxX = sortedRuntimePoints[sortedRuntimePoints.length - 1].x;
+                const totalWidth = maxX - minX;
+
+                if (totalWidth > 0.001) {
+                    const a = minX * scaleFactor;
+                    const b = maxX * scaleFactor;
+                    const totalWidthScaled = b - a;
+
+                    const denseSamples = 300; 
+                    const denseDx = totalWidthScaled / denseSamples;
+                    let simpsonSum = 0;
+
+                    for (let i = 0; i <= denseSamples; i++) {
+                        const evalX = a + i * denseDx;
+                        const radiusAtX = evaluateSplineRadius(evalX / scaleFactor);
+                        const fx = Math.PI * Math.pow(radiusAtX, 2);
+                        let weight = (i === 0 || i === denseSamples) ? 1 : (i % 2 === 0 ? 2 : 4);
+                        simpsonSum += weight * fx;
+                    }
+                    theoreticalExact = (denseDx / 3) * simpsonSum;
+
+                    const dxSlider = totalWidthScaled / n;
+                    for (let i = 0; i < n; i++) {
+                        const xMid = a + (i + 0.5) * dxSlider;
+                        const radiusMid = evaluateSplineRadius(xMid / scaleFactor);
+                        theoreticalApprox += Math.PI * Math.pow(radiusMid, 2) * dxSlider;
+                    }
+
+                    if (renderMode === 'disks') {
+                        const baseSegmentsCount = sortedRuntimePoints.length - 1;
+                        
+                        for (let i = 0; i < baseSegmentsCount; i++) {
+                            const pLeft = sortedRuntimePoints[i];
+                            const pRight = sortedRuntimePoints[i+1];
+                            const segmentW = pRight.x - pLeft.x;
+                            if (segmentW <= 0.001) continue;
+
+                            const rawShares = (segmentW / totalWidth) * n;
+                            let subSteps = Math.round(rawShares);
+                            if (subSteps < 1) subSteps = 1; 
+
+                            const subDx = segmentW / subSteps;
+
+                            for (let j = 0; j < subSteps; j++) {
+                                const localXMid = pLeft.x + (j + 0.5) * subDx;
+                                const lookupRadius = evaluateSplineRadius(localXMid) / scaleFactor;
+
+                                if (lookupRadius > 0.005) {
+                                    const cylGeo = new THREE.CylinderGeometry(lookupRadius, lookupRadius, subDx, 64, 1, false, 0, phiLength);
+                                    cylGeo.rotateZ(Math.PI / 2);
+                                    const cylMesh = new THREE.Mesh(cylGeo, [fruitMaterial, interiorMaterial, interiorMaterial]);
+                                    cylMesh.position.x = localXMid; 
+                                    diskGroup.add(cylMesh);
+                                }
+                            }
+                        }
+                    }
+
+                    latexString = `V = \\pi \\int_{${a.toFixed(1)}}^{${b.toFixed(1)}} [f_{spline}(x)]^2 \\, dx`;
+                }
+
+                if (renderMode === 'smooth') {
+                    fruitMesh.visible = true;
+                    const profilePoints = [];
+                    const samples = 100;
+                    for (let i = 0; i <= samples; i++) {
+                        const currX = minX + (i / samples) * totalWidth;
+                        const currR = evaluateSplineRadius(currX) / scaleFactor;
+                        profilePoints.push(new THREE.Vector2(currR, currX));
+                    }
+                    const geo = new THREE.LatheGeometry(profilePoints, Math.max(4, n), 0, Math.max(0.001, phiLength));
+                    geo.rotateZ(-Math.PI / 2); fruitMesh.geometry = geo;
+                } else {
+                    fruitMesh.visible = false;
+                }
+                
+                if (currentKey === 'apple') {
+                    const leftmostX = sortedRuntimePoints[0].x;
+                    stemGroup.position.set(leftmostX, 0, 0);
+                    stemGroup.rotation.set(0, 0, Math.PI / 2);
+                } else {
+                    const rightmostX = sortedRuntimePoints[sortedRuntimePoints.length - 1].x;
+                    stemGroup.position.set(rightmostX, 0, 0);
+                    stemGroup.rotation.set(0, 0, -Math.PI / 2);
+                }
             }
 
-            calculateMathematicalVolume();
+            // ==========================================
+            // OUTPUT DATA TO UI WINDOWS
+            // ==========================================
+            const currentAnimFactor = hasAnimated ? animFactor : 1.0;
+            document.getElementById('exact-volume').innerText = `${Math.abs(theoreticalExact * currentAnimFactor).toFixed(3)} ${unitLabel}`;
+            document.getElementById('approx-volume').innerText = `${Math.abs(theoreticalApprox * currentAnimFactor).toFixed(3)} ${unitLabel}`;
+
+            const latexContainer = document.getElementById('latex-formula');
+            latexContainer.innerHTML = `\\(${latexString.replace(/\$\$/g, '')}\\)`;
+            if (window.MathJax) MathJax.typesetPromise([latexContainer]);
         }
 
         UX = {
@@ -698,24 +950,20 @@
                 const opacityVal = parseFloat(document.getElementById('opacity-slider').value);
                 const showGrid = document.getElementById('grid-toggle').checked;
                 fruitMaterial.opacity = opacityVal;
+                mathSolidMaterial.opacity = opacityVal;
                 measurementGrid.visible = showGrid;
                 axisLine.visible = showGrid;
-                updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : 0.001);
+                updateGeometry(hasAnimated ? animationProgress * Math.PI * 2 : Math.PI * 2);
             }
         };
         function updateVisualization() { UX.updateVisualization(); }
 
         function handleActionButtonClick() {
             if (isAnimatingVolume) {
-                isAnimatingVolume = false;
-                setPlayUI();
+                isAnimatingVolume = false; setPlayUI();
             } else {
-                if (animationProgress >= 1.0 || animationProgress <= 0.0) {
-                    animationProgress = 0.001;
-                }
-                isAnimatingVolume = true;
-                hasAnimated = true;
-                setPauseUI();
+                if (animationProgress >= 1.0 || animationProgress <= 0.0) animationProgress = 0.001;
+                isAnimatingVolume = true; hasAnimated = true; setPauseUI();
             }
         }
 
@@ -736,12 +984,10 @@
         function toggleTheme() {
             const isLight = document.body.classList.toggle('light-mode');
             scene.background.setHex(isLight ? 0xffffff : 0x121212);
-            
             scene.remove(measurementGrid);
             measurementGrid = new THREE.GridHelper(8, 32, isLight ? 0x111111 : 0x444444, isLight ? 0xcccccc : 0x222222);
             measurementGrid.position.y = -1.2; measurementGrid.visible = document.getElementById('grid-toggle').checked;
             scene.add(measurementGrid);
-
             axisLine.material.color.setHex(isLight ? 0x111111 : 0x5a67d8);
         }
 
@@ -758,9 +1004,7 @@
                 const speed = parseFloat(document.getElementById('speed-slider').value);
                 animationProgress += speed;
                 if (animationProgress >= 1.0) { 
-                    animationProgress = 1.0; 
-                    isAnimatingVolume = false; 
-                    setPlayUI();
+                    animationProgress = 1.0; isAnimatingVolume = false; setPlayUI();
                 }
                 updateGeometry(animationProgress * Math.PI * 2);
             }
